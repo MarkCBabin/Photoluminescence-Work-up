@@ -110,9 +110,7 @@ else
         QY1 = QY_Calc1(x,PL,abs_avg,wid,str2,resp)
     end
 end
-
-    
-    
+     
 
 end 
 
@@ -138,13 +136,20 @@ for i = 1:wid
     domain1 = [xx(x_min_index),xx(x_max_index)];
     outliers = excludedata(ev,PL(y_min_index:y_max_index)','domain',domain1);
     test1 = fit(ev,PL(y_min_index:y_max_index)','gauss1','Exclude', outliers);
+    resp_i = resp{i};
     figure;
+    subplot(2,1,1);
+    plot(test1,ev,PL(y_min_index:y_max_index)','Residuals')
+    xlabel('Energy (eV)')
+    ylabel('Counts')
+    tit1 = sprintf('Residuals of the fit for %s',resp_i);
+    title(tit1)    
+    subplot(2,1,2);
     plot(test1,ev,PL(y_min_index:y_max_index)')
     xlabel('Energy (eV)')
     ylabel('Counts')
-    resp_i = resp{i};
-    titl = sprintf('Plot and fit of %s',resp_i);
-    title(titl)
+    tit2 = sprintf('Plot and fit of %s',resp_i);
+    title(tit2)
 end
 
 %here we fit each set of data to a gaussian function using the bounds
