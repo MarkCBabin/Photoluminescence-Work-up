@@ -8,4 +8,4 @@ QY_Calc calcualtes the quantum yield of a sample provided another reference samp
 
 PL_Master incorporates the functionality of QY_Calc (with some improved plotting functionality) as well as converting PL data from wavelength (nm) to energy (ev), normalizing, plotting, and fitting of spectra to 1st order Gaussian functions at the user's request.
 
-If you use these functions and run into any issues or desire more functionality, please do not hesistate to contact me with bugs/concerns/requests.
+If you use these functions and run into any issues or desire more functionality, please do not hesistate to contact me with bugs/concerns/requests at MarkCBabin@gmail.com.
