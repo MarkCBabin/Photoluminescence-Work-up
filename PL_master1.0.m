@@ -10,7 +10,7 @@
 %using that) into the same folder as your data for it to work properly.
 
 function [ev,PL_ev,PL_norm] = PL_master(x,PL,abs_avg)
-%This function converts a PL spectrum from wavelength the energy (nm ->
+%This function converts a PL spectrum from wavelength to energy (nm ->
 %eV). It should be used in conjuction with abs_avg to determine the
 %absorption average over the exciation wavelength.
 
@@ -80,12 +80,9 @@ title('Plot of Normalized PL Spectra')
 xlabel('Energy (eV)')
 ylabel('Normalized PL')
 legend(resp)
-
 %this will plot both your normalized spectra (Figure 2) and the raw spectra
 %in eV (Figure 1) with a legend comprised of the entries to the above
 %prompt, saved in the "resp" array.
-
-
 
 
 prompt1 = 'Would you like to fit your data with Gaussians?\n If so, type any number.\n If not, hit enter.\n';
@@ -97,21 +94,24 @@ if isempty(str1)
         disp(sprintf('Thanks, you are done!'))
         return
     else
-        QY1 = QY_Calc1(x,PL,abs_avg,wid,str2,resp)
+        QY = QY_Calc1(x,PL,abs_avg,wid,str2,resp);
     end
 else
     Gaussfitting(ev,PL,wid,resp)
-    prompt2 = 'Would you like to calculate the quantum yield of these samples?\n If so, enter which column (number) your QY standard is in.\n If not, just hit enter.\n';
+    prompt2 = '\nWould you like to calculate the quantum yield of these samples?\n If so, enter which column (number) your QY standard is in.\n If not, just hit enter.\n';
     str2 = input(prompt2);
     if isempty(str2)
         disp(sprintf('Thanks, you are done!'))
         return
     else
-        QY1 = QY_Calc1(x,PL,abs_avg,wid,str2,resp)
+        QY = QY_Calc1(x,PL,abs_avg,wid,str2,resp);
     end
 end
      
-
+%This decision tree of if statesments allows the user whether or not they
+%would like to run the next two subfuncitons. In the case of QY_Calc1,
+%these prompts also generate some of the input necessary for the function
+%to run. 
 end 
 
 %% Gaussian Fitting of data and determination of fwhm/fit quality
@@ -135,38 +135,47 @@ for i = 1:wid
     x_max_index = 2.*i;
     domain1 = [xx(x_min_index),xx(x_max_index)];
     outliers = excludedata(ev,PL(y_min_index:y_max_index)','domain',domain1);
-    test1 = fit(ev,PL(y_min_index:y_max_index)','gauss1','Exclude', outliers);
+    test1 = fit(ev,PL(y_min_index:y_max_index)','gauss1','Exclude', outliers);  
+    coeff = coeffvalues(test1)';
+    a1 = coeff(1);
+    b1 = coeff(2);
+    c1 = coeff(3);
+    index = 1 + 3.*(i-1);
+    coeffs(index) = a1;
+    coeffs(index+1) = b1;
+    coeffs(index+2) = c1; 
+    FWHM(i) = 2.*sqrt(2.*log(2)).*c1;
     resp_i = resp{i};
     figure;
     subplot(2,1,1);
     plot(test1,ev,PL(y_min_index:y_max_index)','Residuals')
-    xlabel('Energy (eV)')
-    ylabel('Counts')
+    xlabel('Energy (eV)','FontSize',15)
+    ylabel('Counts','FontSize',15)
     tit1 = sprintf('Residuals of the fit for %s',resp_i);
-    title(tit1)    
+    title(tit1,'FontSize',15)    
     subplot(2,1,2);
     plot(test1,ev,PL(y_min_index:y_max_index)')
-    xlabel('Energy (eV)')
-    ylabel('Counts')
-    tit2 = sprintf('Plot and fit of %s',resp_i);
-    title(tit2)
+    xlabel('Energy (eV)','FontSize',15)
+    ylabel('Counts','FontSize',15)
+    tit2 = sprintf('Plot and fit of %s, with FWHM of %s',resp_i,c1);
+    title(tit2,'FontSize',15)
 end
+
+assignin('base','coeffs',coeffs);
+assignin('base','FWHM',FWHM);
 
 %here we fit each set of data to a gaussian function using the bounds
 %slected by the user
 %The x/y_min/max  indicies indicate the boundries over which to fit
 %They y's are required for a data matrix so that each column is treated
 %individually while the x's are generated from the user selected values
-
-
+%from here, we create a subplot system that plots both the PL data against
+%its fit as well as a plot of the residuals for each fit. The titles are
+%generated based on the index of the "resp" variable which is generated in
+%the main function by user input to give each column in the matrix a name
+%for legened and plotting purposes.
 
 end
-
-
-
-
-
-
 
 %% Option to calc QY from this data
 function QY = QY_Calc1(x,PL,abs_avg,wid,str2,resp)
@@ -184,11 +193,9 @@ area = trapz(x,PL);
 %This step calculates the area of each plot (numeric intergration using
 %trapazoids).
 
-ref_area = area(str2);
-%this calcualtes the integrated area of the reference
-
+trans_ref = 1-10^(-1.*abs_avg(str2));
+    
 for i = 1:wid
-    trans_ref = 1-10^(-1.*abs_avg(str2));
     trans_samp(i) = 1-10^(-1.*abs_avg(i));
     QY(i) = str4.*area(i)./area(str2)*trans_samp(i)./trans_ref*(str3(1)./str3(2))^2;
 end
@@ -208,10 +215,10 @@ set(gca,'XTick',1:wid)
 set(gca,'XTickLabel',resp)
 hold off
 
-
-disp(sprintf('PL Master has completed its functionality'))
 %Now we plot a bar graph of these QYs and label the x-axis with the names
 %given in resp (this is acheived by setting the number of x-ticks to
 %force the bar plot to allow a manual changing of the labeling, which is
 %done in the second "set" command
+
+disp(sprintf('PL Master has completed its functionality'))
 end
