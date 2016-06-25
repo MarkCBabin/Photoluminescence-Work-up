@@ -97,7 +97,7 @@ if isempty(str1)
         QY = QY_Calc1(x,PL,abs_avg,wid,str2,resp);
     end
 else
-    Gaussfitting(ev,PL,wid,resp)
+    Gaussfitting(ev,PL_norm,wid,resp)
     prompt2 = '\nWould you like to calculate the quantum yield of these samples?\n If so, enter which column (number) your QY standard is in.\n If not, just hit enter.\n';
     str2 = input(prompt2);
     if isempty(str2)
@@ -200,6 +200,8 @@ for i = 1:wid
     QY(i) = str4.*area(i)./area(str2)*trans_samp(i)./trans_ref*(str3(1)./str3(2))^2;
 end
 %here, we calculate the QY for each sample iteratively
+%This equation is pulled from "Standards for Photoluminescence Quantum 
+%Yield Measurements in Solution (IUPAC Technical Report)" by Brouwer (2001)
 
 assignin('base','QY',QY);
 %here, the QYs are assigned a variable in the main workspace (base) as the
