@@ -1,29 +1,30 @@
-%NOTE: You may want to input a semi-colon after your function call in the
+%%This function converts a PL spectrum from wavelength to energy (nm ->
+%eV). It should be used in conjuction with abs_avg to determine the
+%absorption average over the exciation wavelength. 
+%
+%Use/edit the script PL_master_run to prevent having to copy this file (and
+%Abs_avg) into every folder used. 
+%
+%The function input arguements are:
+% x            =         wavelengths over which PL is measured (in nm)
+% PL           =         PL counts, background corrected
+% abs_avg      =         avg abs at exciation wavelength (from abs_avg.m)
+%The function output arguements are:
+% ev           =         conversion of x from wavelength to ev
+% PL_ev        =         PL spectra with Jacobian performed
+% PL_norm      =         normalized PL spectra
+%
+%You may want to input a semi-colon after your function call in the
 %comand line to prevent a long output. (See below)
 % [a,b,c] = PL_Conv(x,PL,abs_avg);
-
+%
 % Additionally, this file assumes that you input all of your PL data as a
 % matrix wherein each point aligns with the same wavelength (i.e. data was
 % collected over the same range with the same resoluton).
 
-%Lastly, you will need to copy this file (and abs_avg.m if you plan on
-%using that) into the same folder as your data for it to work properly.
-
 function [ev,PL_ev,PL_norm] = PL_master(x,PL,abs_avg)
-%This function converts a PL spectrum from wavelength to energy (nm ->
-%eV). It should be used in conjuction with abs_avg to determine the
-%absorption average over the exciation wavelength.
-
-%The function input arguements are:
-% x            =         wavelengths over which PL is measured
-% PL           =         PL counts, background corrected
-% abs_avg      =         avg abs at exciation wavelength (from abs_avg.m)
-% The function output arguements are:
-% ev           =         conversion of x from wavelength to ev
-% PL_ev        =         PL spectra with Jacobian performed
-% PL_norm      =         normalized PL spectra
-
 close all
+%this will close all figure windows open
 
 ev = 1239.84193./x;
 %convert x (in wavelength) to energy (in eV)
@@ -85,7 +86,6 @@ legend(resp)
 %this will plot both your normalized spectra (Figure 2) and the raw spectra
 %in eV (Figure 1) with a legend comprised of the entries to the above
 %prompt, saved in the "resp" array.
-
 
 prompt1 = 'Would you like to fit your data with Gaussians?\n If so, type any number.\n If not, hit enter.\n';
 str1 = input(prompt1);
@@ -196,7 +196,6 @@ end
 %the main function by user input to give each column in the matrix a name
 %for legened and plotting purposes.
 
-
 disp(sprintf('The next displays will repeat until you are satisfied with your fittings.'));
 
 prompta = '\nWould you like to re-select the x-boundries for your Gaussian fitting?\n If so, enter the number of the FIGURE you would like to correct.\n If not, type zero.\n';
@@ -278,8 +277,6 @@ assignin('base','selected_x',xx);
 %function.
 end
 
-
-
 %% Option to calc QY from this data
 function QY = QY_Calc1(x,PL,abs_avg,wid,str2,resp)
 
@@ -327,5 +324,5 @@ hold off
 %force the bar plot to allow a manual changing of the labeling, which is
 %done in the second "set" command
 
-disp(sprintf('PL Master has completed its functionality'))
+disp(sprintf('PL Master has completed its functionality.'))
 end
