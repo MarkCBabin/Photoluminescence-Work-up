@@ -1,6 +1,6 @@
 # Photoluminescence-Work-up
 
-This repository is for my Matlab functions/scripts that handle PL data work-up. These are intedned to work for all types of PL data from any spectrometer, so long as they are imported as column vectors or a matrix of multiple column vectors (ie. 2500x5).
+This repository is for my Matlab functions/scripts that handle PL data work-up. These are intended to work for all types of PL data from any spectrometer, so long as they are imported as column vectors or a matrix of multiple column vectors (ie. 2500x5).
 
 Abs_avg serves to determine the average absorbance of a sample over the range that it was excited for PL. The .m file should explain the inputs and outputs in its comments.
 
