@@ -23,6 +23,8 @@ function [ev,PL_ev,PL_norm] = PL_master(x,PL,abs_avg)
 % PL_ev        =         PL spectra with Jacobian performed
 % PL_norm      =         normalized PL spectra
 
+close all
+
 ev = 1239.84193./x;
 %convert x (in wavelength) to energy (in eV)
 
@@ -97,7 +99,7 @@ if isempty(str1)
         QY = QY_Calc1(x,PL,abs_avg,wid,str2,resp);
     end
 else
-    Gaussfitting(ev,PL,wid,resp)
+    Gaussfitting(ev,PL_norm,wid,resp)
     prompt2 = '\nWould you like to calculate the quantum yield of these samples?\n If so, enter which column (number) your QY standard is in.\n If not, just hit enter.\n';
     str2 = input(prompt2);
     if isempty(str2)
@@ -123,10 +125,11 @@ disp(sprintf('\n\nUse the mouse to select the bounds over which the program will
 %this creates two vectors (xx and yy) that correspond to the x and y
 %coordinates selected by the user on Figure 2 using their mouse.
 
-assignin('base','selected_x',xx);
-%here we save the values of the selected x values above to the main
-%workspace so that the user can see them and use them outside of this
-%function.
+coeffs = zeros(1,3.*wid);
+FWHM = zeros(1,wid);
+%here, we create the vectors that will be populated in the for loop below.
+%It is important to create these beforehand to improve the speed of the
+%program, particularly if you will be iterating through many data sets.
 
 for i = 1:wid
     y_min_index = 1+length(PL).*(i-1);
@@ -134,8 +137,13 @@ for i = 1:wid
     x_min_index = 2.*i-1;
     x_max_index = 2.*i;
     domain1 = [xx(x_min_index),xx(x_max_index)];
-    outliers = excludedata(ev,PL(y_min_index:y_max_index)','domain',domain1);
-    test1 = fit(ev,PL(y_min_index:y_max_index)','gauss1','Exclude', outliers);  
+    if wid == 1
+        outliers = excludedata(ev,PL(y_min_index:y_max_index),'domain',domain1);
+        test1 = fit(ev,PL(y_min_index:y_max_index),'gauss1','Exclude', outliers);
+    else 
+        outliers = excludedata(ev,PL(y_min_index:y_max_index)','domain',domain1);
+        test1 = fit(ev,PL(y_min_index:y_max_index)','gauss1','Exclude', outliers);  
+    end
     coeff = coeffvalues(test1)';
     a1 = coeff(1);
     b1 = coeff(2);
@@ -146,23 +154,36 @@ for i = 1:wid
     coeffs(index+2) = c1; 
     FWHM(i) = 2.*sqrt(2.*log(2)).*c1;
     resp_i = resp{i};
-    figure;
-    subplot(2,1,1);
-    plot(test1,ev,PL(y_min_index:y_max_index)','Residuals')
-    xlabel('Energy (eV)','FontSize',15)
-    ylabel('Counts','FontSize',15)
-    tit1 = sprintf('Residuals of the fit for %s',resp_i);
-    title(tit1,'FontSize',15)    
-    subplot(2,1,2);
-    plot(test1,ev,PL(y_min_index:y_max_index)')
-    xlabel('Energy (eV)','FontSize',15)
-    ylabel('Counts','FontSize',15)
-    tit2 = sprintf('Plot and fit of %s, with FWHM of %s',resp_i,c1);
-    title(tit2,'FontSize',15)
+    if wid == 1
+        figure;
+        subplot(2,1,1);
+        plot(test1,ev,PL(y_min_index:y_max_index),'Residuals')
+        xlabel('Energy (eV)','FontSize',15)
+        ylabel('Counts','FontSize',15)
+        tit1 = sprintf('Residuals of the fit for %s',resp_i);
+        title(tit1,'FontSize',15)    
+        subplot(2,1,2);
+        plot(test1,ev,PL(y_min_index:y_max_index))
+        xlabel('Energy (eV)','FontSize',15)
+        ylabel('Counts','FontSize',15)
+        tit2 = sprintf('Plot and fit of %s, with FWHM of %s',resp_i,c1);
+        title(tit2,'FontSize',15)      
+    else
+        figure;
+        subplot(2,1,1);
+        plot(test1,ev,PL(y_min_index:y_max_index)','Residuals')
+        xlabel('Energy (eV)','FontSize',15)
+        ylabel('Counts','FontSize',15)
+        tit1 = sprintf('Residuals of the fit for %s',resp_i);
+        title(tit1,'FontSize',15)    
+        subplot(2,1,2);
+        plot(test1,ev,PL(y_min_index:y_max_index)')
+        xlabel('Energy (eV)','FontSize',15)
+        ylabel('Counts','FontSize',15)
+        tit2 = sprintf('Plot and fit of %s, with FWHM of %s',resp_i,c1);
+        title(tit2,'FontSize',15)
+    end
 end
-
-assignin('base','coeffs',coeffs);
-assignin('base','FWHM',FWHM);
 
 %here we fit each set of data to a gaussian function using the bounds
 %slected by the user
@@ -175,7 +196,89 @@ assignin('base','FWHM',FWHM);
 %the main function by user input to give each column in the matrix a name
 %for legened and plotting purposes.
 
+
+disp(sprintf('The next displays will repeat until you are satisfied with your fittings.'));
+
+prompta = '\nWould you like to re-select the x-boundries for your Gaussian fitting?\n If so, enter the number of the FIGURE you would like to correct.\n If not, type zero.\n';
+whil_index = input(prompta);
+
+while whil_index >= 3 
+    colnum = whil_index - 2;
+    disp(figure(whil_index))
+    [xx(2.*colnum -1),yy(2.*colnum-1)] = ginput(1);
+    [xx(2.*colnum),yy(2.*colnum)] = ginput(1);
+    y_min_index = 1+length(PL).*(colnum-1);
+    y_max_index = length(PL).*colnum;
+    x_min_index = 2.*colnum-1;
+    x_max_index = 2.*colnum;
+    domain1 = [xx(x_min_index),xx(x_max_index)];
+    if wid == 1
+        outliers = excludedata(ev,PL(y_min_index:y_max_index),'domain',domain1);
+        test1 = fit(ev,PL(y_min_index:y_max_index),'gauss1','Exclude', outliers);
+    else 
+        outliers = excludedata(ev,PL(y_min_index:y_max_index)','domain',domain1);
+        test1 = fit(ev,PL(y_min_index:y_max_index)','gauss1','Exclude', outliers);  
+    end
+    aaa = coeffvalues(test1)';
+    aa = aaa(1);
+    bb = aaa(2);
+    cc = aaa(3);
+    inex = 1 + 3.*(colnum-1);
+    coeffs(inex) = aa;
+    coeffs(inex+1) = bb;
+    coeffs(inex+2) = cc;
+    FWHM(colnum) = 2.*sqrt(2.*log(2)).*cc;
+    resp_c = resp{colnum};
+    if wid == 1
+        figure(whil_index);
+        subplot(2,1,1);
+        plot(test1,ev,PL(y_min_index:y_max_index),'Residuals')
+        xlabel('Energy (eV)','FontSize',15)
+        ylabel('Counts','FontSize',15)
+        tit1 = sprintf('Residuals of the fit for %s',resp_c);
+        title(tit1,'FontSize',15)    
+        subplot(2,1,2);
+        plot(test1,ev,PL(y_min_index:y_max_index))
+        xlabel('Energy (eV)','FontSize',15)
+        ylabel('Counts','FontSize',15)
+        tit2 = sprintf('Plot and fit of %s, with FWHM of %s',resp_c,c1);
+        title(tit2,'FontSize',15)      
+    else
+        figure(whil_index);
+        subplot(2,1,1);
+        plot(test1,ev,PL(y_min_index:y_max_index)','Residuals')
+        xlabel('Energy (eV)','FontSize',15)
+        ylabel('Counts','FontSize',15)
+        tit1 = sprintf('Residuals of the fit for %s',resp_c);
+        title(tit1,'FontSize',15)    
+        subplot(2,1,2);
+        plot(test1,ev,PL(y_min_index:y_max_index)')
+        xlabel('Energy (eV)','FontSize',15)
+        ylabel('Counts','FontSize',15)
+        tit2 = sprintf('Plot and fit of %s, with FWHM of %s',resp_c,c1);
+        title(tit2,'FontSize',15)
+    end
+%This while loop gives users the options to alter the bounds over which
+%the fit is computed. It is done iteratively, allowing the user to select
+%which plot to re-fit, and can continue until the user is happy with the
+%fit generated. This will over-write the values of "coeffs" and "FWHM" as
+%well as the figure that is being corrected.
+
+prompta = '\nWould you like to re-select the x-boundries for your Gaussian fitting?\n If so, enter the number of the FIGURE you would like to correct.\n If not, type zero.\n';
+whil_index = input(prompta);
 end
+
+
+assignin('base','coeffs',coeffs);
+assignin('base','FWHM',FWHM);
+assignin('base','selected_x',xx);
+%here we save the values of the selected x values (from ginput above), the 
+%calculated full width at half max, and the fit coefficients to the main
+%workspace so that the user can see them and use them outside of this
+%function.
+end
+
+
 
 %% Option to calc QY from this data
 function QY = QY_Calc1(x,PL,abs_avg,wid,str2,resp)
@@ -194,12 +297,16 @@ area = trapz(x,PL);
 %trapazoids).
 
 trans_ref = 1-10^(-1.*abs_avg(str2));
-    
+trans_samp = zeros(1,wid);
+QY = zeros(1,wid);
+
 for i = 1:wid
     trans_samp(i) = 1-10^(-1.*abs_avg(i));
     QY(i) = str4.*area(i)./area(str2)*trans_samp(i)./trans_ref*(str3(1)./str3(2))^2;
 end
 %here, we calculate the QY for each sample iteratively
+%This equation is pulled from "Standards for Photoluminescence Quantum 
+%Yield Measurements in Solution (IUPAC Technical Report)" by Brouwer (2001)
 
 assignin('base','QY',QY);
 %here, the QYs are assigned a variable in the main workspace (base) as the
