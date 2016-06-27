@@ -134,8 +134,13 @@ for i = 1:wid
     x_min_index = 2.*i-1;
     x_max_index = 2.*i;
     domain1 = [xx(x_min_index),xx(x_max_index)];
-    outliers = excludedata(ev,PL(y_min_index:y_max_index)','domain',domain1);
-    test1 = fit(ev,PL(y_min_index:y_max_index)','gauss1','Exclude', outliers);  
+    if wid == 1
+        outliers = excludedata(ev,PL(y_min_index:y_max_index),'domain',domain1);
+        test1 = fit(ev,PL(y_min_index:y_max_index),'gauss1','Exclude', outliers);
+    else 
+        outliers = excludedata(ev,PL(y_min_index:y_max_index)','domain',domain1);
+        test1 = fit(ev,PL(y_min_index:y_max_index)','gauss1','Exclude', outliers);  
+    end
     coeff = coeffvalues(test1)';
     a1 = coeff(1);
     b1 = coeff(2);
@@ -146,6 +151,21 @@ for i = 1:wid
     coeffs(index+2) = c1; 
     FWHM(i) = 2.*sqrt(2.*log(2)).*c1;
     resp_i = resp{i};
+    if wid == 1
+    figure;
+    subplot(2,1,1);
+    plot(test1,ev,PL(y_min_index:y_max_index),'Residuals')
+    xlabel('Energy (eV)','FontSize',15)
+    ylabel('Counts','FontSize',15)
+    tit1 = sprintf('Residuals of the fit for %s',resp_i);
+    title(tit1,'FontSize',15)    
+    subplot(2,1,2);
+    plot(test1,ev,PL(y_min_index:y_max_index))
+    xlabel('Energy (eV)','FontSize',15)
+    ylabel('Counts','FontSize',15)
+    tit2 = sprintf('Plot and fit of %s, with FWHM of %s',resp_i,c1);
+    title(tit2,'FontSize',15)      
+    else
     figure;
     subplot(2,1,1);
     plot(test1,ev,PL(y_min_index:y_max_index)','Residuals')
@@ -159,6 +179,7 @@ for i = 1:wid
     ylabel('Counts','FontSize',15)
     tit2 = sprintf('Plot and fit of %s, with FWHM of %s',resp_i,c1);
     title(tit2,'FontSize',15)
+    end
 end
 
 assignin('base','coeffs',coeffs);
@@ -174,8 +195,17 @@ assignin('base','FWHM',FWHM);
 %generated based on the index of the "resp" variable which is generated in
 %the main function by user input to give each column in the matrix a name
 %for legened and plotting purposes.
-
 end
+
+
+
+
+
+
+
+
+
+
 
 %% Option to calc QY from this data
 function QY = QY_Calc1(x,PL,abs_avg,wid,str2,resp)
