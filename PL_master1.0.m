@@ -7,8 +7,8 @@
 %
 %PL_master should be used in conjuction with Abs_avg and PL_master_run to 
 %determine the absorption average over the exciation wavelength, which will 
-%be used as the input abs_avg (see below). %Use/edit the script 
-%PL_master_run to prevent having to copy this file  into every folder used. 
+%be used as the input abs_avg (see below). Use/edit the script 
+%PL_master_run to prevent having to copy this file into every folder used. 
 %
 %The function input arguements are:
 % x            =       wavelengths over which PL is measured (in nm)
@@ -22,14 +22,16 @@
 %If the additional functionalities are performed the following variables
 %will be output to your workspace:
 % coeffs       =       coefficients of the gaussian fit (see details below)
-% FWHM         =       full width at half max of the gaussian fit
+% FWHM         =       full width at half max of each gaussian fit
 % selected_x   =       x_values used in each gaussian fitting
 % QY           =       calculated quantum yield of each sample
 %
 % coeffs will be a matrix of the form
+%
 %      a1  a1  a1  ...  a1
 %      b1  b1  b1  ...  b1
 %      c1  c1  c1  ...  c1
+%
 %where each column of a1, b1, and c1 correspeonds to the coefficients of a 
 %gaussian fit of the form a1*e^(x-b1)^2/c1 for a particular column of data. 
 %
