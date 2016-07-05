@@ -65,7 +65,7 @@ abs_avg1 = repmat(abs_avg,length(x),1);
 %like before, this corrects an abs_avg input to be the correct dimensions
 %for multiplication (.*)
 
-PL_cor = PL.*abs_avg1;
+PL_cor = PL./abs_avg1;
 %corrects PL for absorbance at emission wavelength - this correlates one
 %photon in for one photon out.
 
@@ -320,7 +320,11 @@ QY = zeros(1,wid);
 
 for i = 1:wid
     trans_samp(i) = 1-10^(-1.*abs_avg(i));
-    QY(i) = str4.*area(i)./area(str2)*trans_samp(i)./trans_ref*(str3(1)./str3(2))^2;
+    if i == str2
+        QY(i) = str4.*(area(i)./area(str2))*(trans_ref./trans_samp(i))
+    else
+        QY(i) = str4.*(area(i)./area(str2))*(trans_ref./trans_samp(i))*(str3(1)./str3(2))^2
+    end
 end
 %here, we calculate the QY for each sample iteratively
 %This equation is pulled from "Standards for Photoluminescence Quantum 
