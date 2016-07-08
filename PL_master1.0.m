@@ -50,6 +50,21 @@ function [ev,PL_ev,PL_norm] = PL_master(x,PL,abs_avg)
 close all
 %this will close all figure windows open
 
+
+if size(x,2) > 1
+    disp('Unexpected vector size for x');
+    return
+end
+if length(x) ~= length(PL)
+    disp('Must match length of PL vector/matrix to that of x');
+    return
+end
+if size(PL,2) ~= size(abs_avg,2)
+    disp('Must have on column in abs_avg for every column in PL');
+    return
+end
+%this verifies that the inputs are of valid sizes
+
 ev = 1239.84193./x;
 %convert x (in wavelength) to energy (in eV)
 
@@ -247,7 +262,8 @@ while whil_index >= 3
     cc = aaa(3);
     coeffs(1,colnum) = aa;
     coeffs(2,colnum) = bb;
-    coeffs(3,colnum) = cc;
+    coeffs(3,colnum) = cc./sqrt(2);
+    %MUST TEST CODE SINCE CORRECTING THIS FOR SIGMA
     FWHM(colnum) = 2.*sqrt(2.*log(2)).*cc;
     resp_c = resp{colnum};
     if wid == 1
